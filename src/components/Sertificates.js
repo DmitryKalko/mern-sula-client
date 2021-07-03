@@ -128,7 +128,7 @@ class Sertificates extends React.Component {
 
 
   render() {
-    console.log(localStorage);
+    //console.log(localStorage);
     console.log(this.state);
     const applications = this.fillterApplications();
 

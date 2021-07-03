@@ -1,6 +1,8 @@
 import React from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import moment from 'moment';
+import 'moment/locale/ru';
 
 
 import './App.css';
@@ -11,9 +13,11 @@ import List from './List';
 import InfoCard from './InfoCard';
 import Search from './Search';
 import Form from './Form';
+import PreView from './PreView';
 
 
-const url = 'https://dmitrykalko.github.io/rakovich/base/db.json';
+//const url = 'https://dmitrykalko.github.io/rakovich/base/db.json';
+const url = 'https://sula-gentry.herokuapp.com/api/lastnames';
 let dataForSertificate = [];
 
 class SulaApp extends React.Component {
@@ -23,44 +27,62 @@ class SulaApp extends React.Component {
     search: '',
     intervalId: 0,
     formStatus: false,
+    showStatus: false,
     fio: '',
+    email: '',
     formData: '',
+    date:'',
   }
 
   componentDidMount() {
     axios.get(`${url}`)
       .then(response => {
         const base = response.data;
-        this.setState({ base: base.base });
-      })
+        console.log(base);
+        this.setState({ base: response.data });
+      });
   };
 
 
   getSertificate = (selectedItem) => {
     const { lastName, flagName, imgId } = selectedItem;
     this.setState({ formStatus: true, lastName: lastName, flagName: flagName, imgId: imgId })
+    this.selectingDate();
   }
-  closeForm = () => {
-    this.setState({ formStatus: false })
+  closeForm = (e) => {
+    const { fio, email } = this.state;
+    this.setState({ formStatus: false });
+    this.setState({ fio: "" });
+    this.setState({ email: "" });
+    this.setState({ date: "" });
+    let form = document.querySelector('.form');
+    form.reset();
+    this.selectingDate();
   }
-  submitForm = (e) => {
-    const { fio } = this.state;
-    e.preventDefault();
-    this.setState({ formData: fio, formStatus: false })
-    this.makeStorage();
 
-    e.target.reset();
-    if (this.state.fio !== '') {
+  submitForm = (e) => {   
+    const { fio, email } = this.state;
+    e.preventDefault();
+    this.setState({ formData: fio })
+    this.makeStorage();
+    this.makePostToServer();
+   
+    if (fio !== '' && email !== '') {
       Swal.fire({
         title: 'Поздравляем, Вы Шляхтич!',
-        text: 'Свою личную грамоту Шляхтича Вы можете получить на рецепшен',
+        text: 'Ваша грамота Шляхтича отправлена на электронную почту',
         icon: 'success',
-        confirmButtonText: 'Уже иду!'
+        confirmButtonText: 'OK'
       })
-      this.setState({ fio: "" })
+      this.setState({ fio: "" });
+      this.setState({ email: "" });
+      this.setState({ date: "" });
+      this.setState({ formStatus: false })
+      e.target.reset();
+      this.selectingDate();
     } else {
       Swal.fire({
-        text: 'Пожалуйста, введите свою Фамилию Имя Отчество',
+        text: 'Пожалуйста, заполните все поля',
         icon: 'error',
         confirmButtonText: 'Понятно'
       })
@@ -71,7 +93,35 @@ class SulaApp extends React.Component {
     const { name, value } = e.target;
     this.setState({ [name]: value });
   }
-
+  emailData = (e) => {
+    const { name, value } = e.target;
+    this.setState({ [name]: value });
+  }
+  selectingDate = () => {
+    let dateNow = moment().locale('ru').format('D MMMM YYYY');
+    this.setState({ date: dateNow });
+  }
+  dateData = (day) => {
+    let dateNow = moment(day).locale('ru').format('D MMMM YYYY')
+    console.log(dateNow);
+    this.setState({ date: dateNow });
+  }
+  preView = (e) => {
+    e.preventDefault();
+    const { fio, email } = this.state;
+    if (fio !== '' && email !== '') {
+      this.setState({ showStatus: true });
+    } else {
+      Swal.fire({
+        text: 'Пожалуйста, заполните все поля',
+        icon: 'error',
+        confirmButtonText: 'Понятно'
+      })
+    }
+  }
+  preViewClose = () => {
+    this.setState({ showStatus: false })
+  }
   selectLastName = (id) => {
     const { base } = this.state;
     const copyBase = [...base];
@@ -83,16 +133,43 @@ class SulaApp extends React.Component {
   }
 
   makeStorage = () => {
-
+  
     const { fio } = this.state;
     const { selectedItem } = this.state;
+    const { email } = this.state;
 
     dataForSertificate = JSON.parse(localStorage.getItem("dataForSertificate")) || [];
     if (fio !== '') {
-      dataForSertificate.push(fio, selectedItem);
+      let emailObj = {email};
+      dataForSertificate.push(fio, selectedItem, emailObj);
     }
     localStorage.setItem("dataForSertificate", JSON.stringify(dataForSertificate));
     console.log(dataForSertificate);
+  }
+
+  makePostToServer = () => {
+    const { fio, selectedItem, email, date } = this.state;
+  
+    if (fio !== '') {
+      let client = {
+        fio: fio,
+        id: selectedItem.id,
+        lastName: selectedItem.lastName,
+        flagName: selectedItem.flagName,
+        imgId: selectedItem.imgId,
+        date: date,
+        email: email,
+        status: false,
+      };
+
+    try {
+      //const response = axios.post('http://localhost:5000/api/clients', client);
+      const response = axios.post('https://sula-gentry.herokuapp.com/api/clients', client);
+      console.log('👉 Returned data:', response);
+    } catch (e) {
+      console.log(`😱 Axios request failed: ${e}`);
+    }
+    }
   }
 
   findLastName = (e) => {
@@ -136,7 +213,6 @@ class SulaApp extends React.Component {
               <div className="cards">
                 <div className="lastNames">
                   {base && (
-
                     <List
                       base={base}
                       onClick={this.selectLastName}
@@ -159,10 +235,23 @@ class SulaApp extends React.Component {
                 formStatus={this.state.formStatus}
                 search={this.state.search}
                 onClick={this.closeForm}
-                onChange={this.fioData}
+                onChangeFio={this.fioData}
+                onChangeEmail={this.emailData}
+                dateChanged={this.dateData}
+                preView={this.preView}
                 onSubmit={this.submitForm}
+                date={this.state.date}
               />
-
+              {this.state.selectedItem && (
+                <PreView
+                  selectedItem={this.state.selectedItem}
+                  fio={this.state.fio}
+                  date={this.state.date}
+                  showStatus={this.state.showStatus}
+                  onClick={this.preViewClose}
+                  showStatus={this.state.showStatus}
+                />
+              )}
             </div>
           </div>
         </main>
@@ -170,7 +259,7 @@ class SulaApp extends React.Component {
         <footer>
           <div className="footer">
             <hr className="line" />
-            <a href="https://parksula.by/ru/" target="_blank" rel="noopener noreferrer"><img src={logoFooter} alt="logoFoot" /></a>
+            <img src={logoFooter} alt="logoFoot" />
             <hr className="line" />
           </div>
         </footer>

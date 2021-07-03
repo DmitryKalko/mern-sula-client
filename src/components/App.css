@@ -153,7 +153,18 @@ body{
   margin: 20px;
   background-color: #e1e1e1;
 }
-.formBtn{
+.dateField{
+  width: 300px;
+  height: 50px;
+  font-size: 20px;
+  text-align: center;
+  border-radius: 10px;
+  border: #22031e;
+  margin: 10px;
+  background-color: #e1e1e1;
+  cursor: pointer;
+}
+.formBtn, .viewBtn{
   width: 300px;
   height: 50px;
   font-size: 20px;
@@ -165,6 +176,9 @@ body{
   cursor: pointer;
 }
 .formBtn:hover{
+  background-color: #c7c6c6;
+}
+.viewBtn:hover{
   background-color: #c7c6c6;
 }
 .close {
@@ -194,6 +208,90 @@ body{
   transform: rotate(-45deg);
   }
 
+/* настройка вида превью сертификата */
+.preView{
+  width: 500px;
+  height: 600px;
+  background-color: white;
+  opacity: 0.97;
+  border-radius: 10px;
+  position: absolute;
+  top: 50%;
+	left: 50%;
+	margin-left: -250px;
+  margin-top: -300px;
+}
+
+.preSertificate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-image: url("../img/pre-sertificate-for-laptop.png");
+  width: 450px;
+  height: 550px;
+  position: absolute;
+  top: 50%;
+	left: 50%;
+	margin-left: -225px;
+  margin-top: -275px;
+}
+.pre-title{
+  color: #ffc124;
+  font-size: 35px;
+  margin-top: 15px;
+}
+.pre-flagForPdf{
+  width: 110px;
+  height: 140px;
+  margin: 15px 0 10px 0;
+}
+.pre-firstString, .pre-secondString, .pre-thirdString{
+  color:white;
+  font-size: 16px;
+  margin-top: 15px;
+}
+.pre-fio{
+  color:white;
+  font-size: 25px;
+  margin: 15px 0 0px 0;
+}
+.pre-familyName, .pre-familyFlag{
+  color:white;
+  font-size: 25px;
+  margin-top: 15px;
+}
+.pre-datePdf{
+  color:white;
+  font-size: 22px;
+  margin-top: 60px;
+}
+
+.pre-close {
+  position: absolute;
+  right: 10px;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  opacity: 0.3;
+  cursor: pointer;
+  }
+  .pre-close:hover {
+  opacity: 1;
+  }
+  .pre-close:before, .pre-close:after {
+  position: absolute;
+  left: 5px;
+  content: ' ';
+  height: 20px;
+  width: 2px;
+  background-color: #333;
+  }
+  .pre-close:before {
+  transform: rotate(45deg);
+  }
+  .pre-close:after {
+  transform: rotate(-45deg);
+  }
 /* настройка админки */
 .admin{
   height: 90vh;
